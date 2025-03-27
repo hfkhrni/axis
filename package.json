@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "dev": "node --experimental-transform-types index.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  }
+}
