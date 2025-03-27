@@ -1,5 +1,5 @@
-const str: string = "hello";
+const str: string = 'hello'
 type Foo = {
-  bar: string;
+  bar: string
 }
 console.log(str)

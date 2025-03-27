@@ -1,8 +1,10 @@
 {
   "scripts": {
-    "dev": "node --experimental-transform-types index.ts"
+    "dev": "node --experimental-transform-types index.ts",
+    "format": "prettier --write"
   },
   "devDependencies": {
+    "prettier": "^3.5.3",
     "typescript": "^5.8.2"
   }
 }
