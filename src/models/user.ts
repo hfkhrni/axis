@@ -1,15 +1,14 @@
 import mongoose, { Schema, Document } from 'mongoose'
 import bcrypt from 'bcrypt'
 
-export interface UserModel extends Document {
+interface UserModel extends Document {
   email: string
   password: string
   isActive: boolean
   account: Account
 }
 
-export interface Account {
-  accountNumber: string
+interface Account {
   balance: number
 }
 
