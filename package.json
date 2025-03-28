@@ -5,13 +5,16 @@
     "format": "prettier --write"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.1",
-    "@types/mongodb": "^4.0.6",
+    "@types/mongoose": "^5.11.96",
     "prettier": "^3.5.3",
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "express": "^4.21.2",
-    "mongodb": "^6.15.0"
+    "joi": "^17.13.3",
+    "mongoose": "^8.13.0"
   }
 }

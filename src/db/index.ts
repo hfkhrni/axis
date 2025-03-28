@@ -1,11 +1,5 @@
 import { MongoClient, ServerApiVersion, type Db } from 'mongodb'
-
-const user = process.env.MONGO_INITDB_ROOT_USERNAME || ''
-const password = process.env.MONGO_INITDB_ROOT_PASSWORD || ''
-const host = process.env.MONGO_HOST || 'localhost'
-const port = process.env.MONGO_PORT || '27017'
-const dbName = process.env.MONGO_DATABASE || ''
-
+import mongoose from 'mongoose'
 const config = {
   user: process.env.MONGO_INITDB_ROOT_USERNAME,
   password: process.env.MONGO_INITDB_ROOT_PASSWORD,
@@ -23,31 +17,12 @@ for (const key of requiredVars) {
 
 const uri = `mongodb://${config.user}:${config.password}@${config.host}:${config.port}`
 
-let db: Db | null = null
-
 export async function connectToMongo(): Promise<void> {
   try {
-    const client = new MongoClient(uri, {
-      serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true
-      }
-    })
-
-    await client.connect()
+    await mongoose.connect(uri, { dbName: config.dbName })
     console.log('Connected to MongoDB')
-
-    db = client.db(dbName)
   } catch (error) {
     console.error('Error connecting to MongoDB:', error)
     throw error
   }
-}
-
-export function getDb(): Db {
-  if (!db) {
-    throw new Error('Database not initialized. Call connectToMongo first.')
-  }
-  return db
 }
