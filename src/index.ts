@@ -1,20 +1,11 @@
-import express from 'express'
-import { connectToMongo, getDb } from './db/index.ts'
-
+import express, { type Request, type Response } from 'express'
+import { connectToMongo } from './db/index.ts'
+import authRouter from './routes/auth.ts'
 const port = 3000
 const app = express()
+app.use(express.json())
 
-app.get('/', async (req, res) => {
-  try {
-    const db = getDb()
-    const collection = db.collection('testCollection')
-    const data = await collection.find({}).toArray()
-    res.json(data)
-  } catch (error) {
-    console.error('Error fetching data:', error)
-    res.status(500).send('Internal Server Error')
-  }
-})
+app.use('/api/auth', authRouter) // All routes in userRoutes will be prefixed with /api/users
 
 connectToMongo().then(() => {
   app.listen(port, () => {
