@@ -10,7 +10,7 @@ const app = express()
 app.use(express.json())
 
 app.use('/api/auth', authRouter)
-app.use('/api/accounts', accountsRouter)
+app.use('/api/accounts', authMiddleware, accountsRouter)
 
 connectToMongo().then(() => {
   app.listen(port, () => {
