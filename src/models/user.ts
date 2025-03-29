@@ -6,6 +6,7 @@ interface UserModel extends Document {
   password: string
   isActive: boolean
   account: Account
+  comparePassword(candidatePassword: string): Promise<boolean>
 }
 
 interface Account {
@@ -55,6 +56,12 @@ userSchema.pre('save', async function (next) {
   }
   next()
 })
+
+userSchema.methods.comparePassword = async function (
+  candidatePassword: string
+): Promise<boolean> {
+  return bcrypt.compare(candidatePassword, this.password)
+}
 
 const User = mongoose.model<UserModel>('User', userSchema)
 
