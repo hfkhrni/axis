@@ -15,7 +15,7 @@ export async function authMiddleware(
     }
 
     const decoded = jwt.verify(token, JWT_SECRET as Secret)
-    req.body.user = decoded
+    req.user = decoded
     next()
   } catch (error) {
     res.status(401).json({ message: 'Unauthenticated' })
