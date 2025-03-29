@@ -1,5 +1,5 @@
-import { MongoClient, ServerApiVersion, type Db } from 'mongodb'
 import mongoose from 'mongoose'
+
 const config = {
   user: process.env.MONGO_INITDB_ROOT_USERNAME,
   password: process.env.MONGO_INITDB_ROOT_PASSWORD,

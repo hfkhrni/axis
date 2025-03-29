@@ -3,7 +3,6 @@ import User from '../models/user.ts'
 import Joi from 'joi'
 import { JWT_SECRET } from '../config.ts'
 import jwt, { type Secret } from 'jsonwebtoken'
-import logger from '../utils/logger.ts'
 import { createError } from '../utils/error.ts'
 
 const registerSchema = Joi.object({

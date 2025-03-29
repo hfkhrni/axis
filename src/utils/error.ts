@@ -1,5 +1,4 @@
 import { type ValidationError } from 'joi'
-import logger from './logger.ts'
 
 type ErrorType =
   | 'VALIDATION_ERROR'
