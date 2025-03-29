@@ -22,6 +22,7 @@ const amountSchema = Joi.object({
   })
 })
 
+// Account Controllers
 export async function getBalance(
   req: Request<{}, {}, AccountsRequestBody>,
   res: Response,

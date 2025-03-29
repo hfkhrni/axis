@@ -1,13 +1,15 @@
 {
   "type": "module",
   "scripts": {
-    "dev": "node --experimental-transform-types --env-file=.env src/index.ts",
-    "format": "prettier --write"
+    "start": "node --experimental-transform-types --env-file=.env src/index.ts",
+    "format": "prettier --write",
+    "test": "jest"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.1",
     "@types/mongoose": "^5.11.96",
+    "@types/node": "^22.13.14",
     "prettier": "^3.5.3",
     "typescript": "^5.8.2"
   },
