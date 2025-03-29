@@ -16,6 +16,12 @@ interface ErrorResponse {
   errors?: Record<string, string>
 }
 
+interface CustomError extends Error {
+  type?: string
+  statusCode?: number
+  errors?: Record<string, string>
+}
+
 const ERROR_TYPES: Record<ErrorType, ErrorResponse> = {
   VALIDATION_ERROR: {
     statusCode: 400,
@@ -53,22 +59,20 @@ export function createError(
   type: ErrorType,
   customMessage?: string,
   validationError?: ValidationError
-) {
-  const error = ERROR_TYPES[type]
+): CustomError {
+  const error = new Error(
+    customMessage || ERROR_TYPES[type].message
+  ) as CustomError
 
-  const formattedError = {
-    ...error,
-    message: customMessage || error.message,
-    errors: validationError?.details.reduce(
-      (acc, curr) => {
-        acc[curr.path.join('.')] = curr.message
-        return acc
-      },
-      {} as Record<string, string>
-    )
-  }
+  error.type = type
+  error.statusCode = ERROR_TYPES[type].statusCode
+  error.errors = validationError?.details.reduce(
+    (acc, curr) => {
+      acc[curr.path.join('.')] = curr.message
+      return acc
+    },
+    {} as Record<string, string>
+  )
 
-  logger.error('Error occurred', formattedError)
-
-  return formattedError
+  return error
 }

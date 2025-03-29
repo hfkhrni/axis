@@ -7,7 +7,12 @@ interface CustomError extends Error {
   errors?: Record<string, string>
 }
 
-function errorHandler(error: CustomError, req: Request, res: Response) {
+function errorHandler(
+  error: CustomError,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   const timestamp = new Date().toISOString()
 
   logger.error('Error occurred', {
