@@ -1,0 +1,396 @@
+openapi: 3.0.3
+info:
+  title: Axis
+  description: API for managing user accounts, deposits, and withdrawals
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api
+    description: Local development server
+paths:
+  /auth/signup:
+    post:
+      summary: Register a new user
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                    description: ID of the created user
+                  token:
+                    type: string
+                    description: JWT authentication token
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /auth/login:
+    post:
+      summary: Authenticate a user
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                    description: ID of the authenticated user
+                  token:
+                    type: string
+                    description: JWT authentication token
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /accounts/balance:
+    get:
+      summary: Get account balance
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+          description: Bearer token for authentication
+          example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+      responses:
+        '200':
+          description: Balance retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  balance:
+                    type: number
+                    description: Current account balance
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /accounts/deposit:
+    post:
+      summary: Deposit funds into account
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+          description: Bearer token for authentication
+          example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+      responses:
+        '201':
+          description: Deposit processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactionId:
+                    type: string
+                    description: ID of the created transaction
+                  balance:
+                    type: number
+                    description: Updated account balance
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /accounts/withdraw:
+    post:
+      summary: Withdraw funds from account
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+          description: Bearer token for authentication
+          example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+      responses:
+        '201':
+          description: Withdrawal processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactionId:
+                    type: string
+                    description: ID of the created transaction
+                  balance:
+                    type: number
+                    description: Updated account balance
+        '400':
+          description: Validation error or insufficient balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UserRegistration:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 6
+          description: User's password (min 6 characters)
+          example: password123
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          description: User's password
+          example: password123
+    TransactionRequest:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: number
+          format: float
+          minimum: 0.01
+          description: Amount to deposit or withdraw
+          example: 100.50
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: User's unique identifier
+        email:
+          type: string
+          format: email
+          description: User's email address
+        isActive:
+          type: boolean
+          description: Whether the user account is active
+        account:
+          $ref: '#/components/schemas/Account'
+        createdAt:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Account last update timestamp
+    Account:
+      type: object
+      properties:
+        balance:
+          type: number
+          description: Current account balance
+          default: 0
+    Transaction:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Transaction's unique identifier
+        userId:
+          type: string
+          description: ID of the user who performed the transaction
+        type:
+          type: string
+          enum: [deposit, withdrawal]
+          description: Type of transaction
+        amount:
+          type: number
+          description: Transaction amount
+        reference:
+          type: string
+          description: Unique transaction reference
+        status:
+          type: string
+          enum: [pending, completed, failed]
+          description: Current status of the transaction
+        createdAt:
+          type: string
+          format: date-time
+          description: Transaction creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Transaction last update timestamp
+    Error:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Error type code
+          example: BAD_REQUEST
+        message:
+          type: string
+          description: Human-readable error message
+          example: Insufficient balance
+        errors:
+          type: object
+          description: Validation errors (if applicable)
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: VALIDATION_ERROR
+              message:
+                type: string
+                example: Validation failed
+              errors:
+                type: object
+                example:
+                  amount: 'Amount must be positive'
+              timestamp:
+                type: string
+                format: date-time
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: UNAUTHORIZED
+              message:
+                type: string
+                example: Authorization token is missing
+              timestamp:
+                type: string
+                format: date-time
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: INTERNAL_ERROR
+              message:
+                type: string
+                example: An unexpected error occurred
+              timestamp:
+                type: string
+                format: date-time
