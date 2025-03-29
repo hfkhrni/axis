@@ -27,7 +27,7 @@ export async function authMiddleware(
           ? 'Authorization token has expired'
           : 'Invalid authorization token'
       const customError = createError('UNAUTHORIZED', message)
-      res.status(customError.statusCode).json(customError)
+      res.status(customError.statusCode!).json(customError)
       return
     }
 
@@ -35,6 +35,6 @@ export async function authMiddleware(
       'UNAUTHORIZED',
       'Failed to authenticate user'
     )
-    res.status(customError.statusCode).json(customError)
+    res.status(customError.statusCode!).json(customError)
   }
 }
