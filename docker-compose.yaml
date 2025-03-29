@@ -1,15 +1,17 @@
 services:
   mongo:
     image: mongo:latest
+    restart: always
     ports:
       - '27017:27017'
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME} # Root username from .env
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD} # Root password from .env
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - mongo_data:/data/db
-      - ./src/utils/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro # Mount the init script
+      - ./src/utils/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
     env_file:
-      - .env # Load environment variables from .env file
+      - .env
+
 volumes:
   mongo_data:
