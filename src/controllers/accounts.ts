@@ -1,8 +1,9 @@
-import type { Request, Response } from 'express'
+import type { NextFunction, Request, Response } from 'express'
 import User from '../models/user.ts'
 import logger from '../utils/logger.ts'
 import Joi from 'joi'
 import Transaction from '../models/transaction.ts'
+import { createError } from '../utils/error.ts'
 
 interface AccountsRequestBody {
   user: {
@@ -23,20 +24,13 @@ const amountSchema = Joi.object({
 
 export async function getBalance(
   req: Request<{}, {}, AccountsRequestBody>,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) {
   try {
-    logger.info('Fetching account balance', {
-      userId: req.user.userId
-    })
-
-    const user = await User.findOne({
-      _id: req.user.userId
-    })
-
+    const user = await User.findOne({ _id: req.user.userId })
     if (!user) {
-      res.status(404).json({ message: 'User not found.' })
-      return
+      throw createError('NOT_FOUND', 'User not found')
     }
 
     logger.info('Balance fetched successfully', {
@@ -44,45 +38,29 @@ export async function getBalance(
       balance: user.account.balance
     })
 
-    res.json({ balance: user.account.balance })
+    res.status(200).json({
+      // OK
+      balance: user.account.balance
+    })
   } catch (error) {
-    logger.error('Balance fetch failed', {
-      error: error instanceof Error ? error.message : 'Unknown error'
-    })
-    res.status(500).json({
-      message: error instanceof Error ? error.message : 'Server error'
-    })
+    next(error)
   }
 }
 
 export async function deposit(
   req: Request<{}, {}, AccountsRequestBody>,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) {
-  // const session = await mongoose.startSession()
   try {
-    console.log(req.user)
     const { error } = amountSchema.validate(req.body)
     if (error) {
-      res.status(400).json({
-        message: 'Validation error.',
-        details: error.details.map((err) => err.message)
-      })
-      return
+      throw createError('VALIDATION_ERROR', 'Validation failed', error)
     }
-    logger.info('Processing deposit transaction', {
-      userId: req.user.userId
-    })
 
-    // session.startTransaction()
-
-    const user = await User.findOne({
-      _id: req.user.userId
-    })
-
+    const user = await User.findOne({ _id: req.user.userId })
     if (!user) {
-      res.status(404).json({ message: 'User not found.' })
-      return
+      throw createError('NOT_FOUND', 'User not found')
     }
 
     const transaction = new Transaction({
@@ -94,7 +72,6 @@ export async function deposit(
     })
 
     user.account.balance += req.body.amount!
-
     await Promise.all([user.save(), transaction.save()])
 
     // await session.commitTransaction()
@@ -105,54 +82,36 @@ export async function deposit(
       amount: req.body.amount,
       newBalance: user.account.balance
     })
-    res.json({ balance: user.account.balance })
+
+    res.status(201).json({
+      // Created
+      transactionId: transaction._id,
+      balance: user.account.balance
+    })
   } catch (error) {
-    logger.error('Deposit failed', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      accountId: req.user.userId
-    })
-    res.status(500).json({
-      message: error instanceof Error ? error.message : 'Server error'
-    })
+    next(error)
   }
 }
-
 export async function withdraw(
   req: Request<{}, {}, AccountsRequestBody>,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) {
   // const session = await mongoose.startSession()
   try {
-    console.log(req.user)
     const { error } = amountSchema.validate(req.body)
     if (error) {
-      res.status(400).json({
-        message: 'Validation error.',
-        details: error.details.map((err) => err.message)
-      })
-      return
+      throw createError('VALIDATION_ERROR', 'Validation failed', error)
     }
-    logger.info('Processing withdrawal transaction', {
-      userId: req.user.userId
-    })
-
     // session.startTransaction()
 
-    const user = await User.findOne({
-      _id: req.user.userId
-    })
-
+    const user = await User.findOne({ _id: req.user.userId })
     if (!user) {
-      res.status(404).json({ message: 'User not found.' })
-      return
+      throw createError('NOT_FOUND', 'User not found')
     }
 
     if (user.account.balance < req.body.amount!) {
-      res.status(400).json({
-        message: 'Insufficient balance.',
-        currentBalance: user.account.balance
-      })
-      return
+      throw createError('BAD_REQUEST', 'Insufficient balance')
     }
 
     const transaction = new Transaction({
@@ -164,7 +123,6 @@ export async function withdraw(
     })
 
     user.account.balance -= req.body.amount!
-
     await Promise.all([user.save(), transaction.save()])
 
     // await session.commitTransaction()
@@ -175,14 +133,12 @@ export async function withdraw(
       amount: req.body.amount,
       newBalance: user.account.balance
     })
-    res.json({ transactionId: transaction._id, balance: user.account.balance })
+
+    res.status(201).json({
+      transactionId: transaction._id,
+      balance: user.account.balance
+    })
   } catch (error) {
-    logger.error('Withdrawal failed', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      accountId: req.user.userId
-    })
-    res.status(500).json({
-      message: error instanceof Error ? error.message : 'Server error'
-    })
+    next(error)
   }
 }
